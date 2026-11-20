@@ -5,7 +5,6 @@ from bilibili import (
     VideoTarget,
     card_targets,
     parse_targets,
-    search_results,
     video_template_values,
 )
 
@@ -71,9 +70,3 @@ class ParsingTests(unittest.TestCase):
             video_template_values({
                 "bvid": "BV1ii421Q7oj", "title": "测试", "pages": [{"page": 1}],
             }, 2)
-
-    def test_search_candidates_clean_highlights_and_ignore_invalid_ids(self):
-        items = [{"bvid": "invalid", "title": "无效"},
-                 {"bvid": "BV1ii421Q7oj", "title": '<em class="keyword">测试</em> &amp; 演示',
-                  "author": "UP"}]
-        self.assertEqual(search_results(items), [("BV1ii421Q7oj", "测试 & 演示", "UP")])

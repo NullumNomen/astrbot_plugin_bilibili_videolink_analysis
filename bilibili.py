@@ -200,20 +200,3 @@ def video_template_values(
         "弹幕": _number(stat.get("danmaku")),
         "tab": "\t",
     }
-
-
-def search_results(items: list, limit: int = 8) -> list[tuple[str, str, str]]:
-    results = []
-    seen = set()
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        bvid = normalize_id(str(item.get("bvid") or ""))
-        title = " ".join(unescape(re.sub(r"<[^>]*>", "", str(item.get("title") or ""))).split())
-        if bvid and bvid.startswith("BV") and title and bvid not in seen:
-            author = " ".join(str(item.get("author") or "").split())
-            results.append((bvid, title[:120], author[:60]))
-            seen.add(bvid)
-            if len(results) == limit:
-                break
-    return results

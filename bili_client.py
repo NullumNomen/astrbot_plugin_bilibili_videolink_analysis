@@ -1,4 +1,4 @@
-"""Async client for Bilibili's public video detail and search endpoints."""
+"""Async client for Bilibili's public video detail endpoint."""
 
 import asyncio
 from hashlib import md5
@@ -9,7 +9,7 @@ from urllib.parse import urlencode, urljoin, urlsplit
 import aiohttp
 from yarl import URL
 
-from .bilibili import VideoTarget, parse_url, search_results
+from .bilibili import VideoTarget, parse_url
 
 API = "https://api.bilibili.com"
 HEADERS = {
@@ -36,13 +36,10 @@ class BiliClient:
         self._wbi_key = ""
         self._wbi_expires = 0.0
         self._wbi_lock = asyncio.Lock()
-        self._guest_cookies = {}
-        self._guest_expires = 0.0
-        self._guest_lock = asyncio.Lock()
 
-    async def _request(self, path: str, cookies=None) -> dict:
+    async def _request(self, path: str) -> dict:
         async with self.session.get(
-            URL(API + path, encoded=True), cookies=cookies, allow_redirects=False, headers=HEADERS,
+            URL(API + path, encoded=True), allow_redirects=False, headers=HEADERS,
         ) as response:
             if response.status != 200:
                 raise BiliError(f"B 站请求失败（HTTP {response.status}）")
@@ -77,7 +74,7 @@ class BiliClient:
             self._wbi_expires = monotonic() + 1800
             return self._wbi_key
 
-    async def _signed_request(self, path: str, params: dict, cookies=None) -> dict:
+    async def _signed_request(self, path: str, params: dict) -> dict:
         key = await self._wbi()
         params = {**params, "wts": int(time())}
         query = urlencode([
@@ -85,23 +82,10 @@ class BiliClient:
             for name, value in sorted(params.items())
         ])
         signature = md5((query + key).encode(), usedforsecurity=False).hexdigest()
-        response = await self._request(f"{path}?{query}&w_rid={signature}", cookies=cookies)
+        response = await self._request(f"{path}?{query}&w_rid={signature}")
         if response.get("code") in {-403, -352}:
             self._wbi_expires = 0
         return self._data(response)
-
-    async def _search_cookies(self) -> dict:
-        async with self._guest_lock:
-            if self._guest_expires <= monotonic():
-                result = self._data(await self._request("/x/frontend/finger/spi"))
-                buvid3 = result.get("b_3")
-                if not isinstance(buvid3, str) or not buvid3:
-                    raise BiliError("B 站未返回匿名访问标识")
-                self._guest_cookies = {"buvid3": buvid3}
-                if isinstance(result.get("b_4"), str) and result["b_4"]:
-                    self._guest_cookies["buvid4"] = result["b_4"]
-                self._guest_expires = monotonic() + 1800
-            return self._guest_cookies
 
     async def resolve(self, target: VideoTarget) -> VideoTarget:
         for _ in range(5):
@@ -127,16 +111,3 @@ class BiliClient:
             else {"aid": target.reference[2:]}
         )
         return await self._signed_request("/x/web-interface/wbi/view", params)
-
-    async def search(self, keyword: str) -> list[tuple[str, str, str]]:
-        data = await self._signed_request(
-            "/x/web-interface/wbi/search/type",
-            {"keyword": keyword, "search_type": "video", "page": 1},
-            cookies=await self._search_cookies(),
-        )
-        items = data.get("result")
-        if items is None:
-            return []
-        if not isinstance(items, list):
-            raise BiliError("B 站返回了无法识别的搜索结果")
-        return search_results(items)

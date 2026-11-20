@@ -4,17 +4,20 @@
   "parse_qq_cards": {"description": "解析 QQ 分享卡片", "type": "bool", "default": true},
   "parse_limit": {"description": "每条消息最多处理的视频数", "type": "int", "default": 3},
   "cooldown_seconds": {"description": "同会话同视频分 P 的去重秒数", "hint": "设为 0 可关闭去重。", "type": "int", "default": 180},
-  "enable_search": {"description": "启用 B站点播指令", "type": "bool", "default": true},
-  "search_timeout_seconds": {"description": "点播序号选择超时秒数", "type": "int", "default": 60},
   "description_limit": {"description": "简介最多显示的字符数", "type": "int", "default": 80},
   "id_preference": {"description": "视频页链接优先使用的稿件号", "type": "string", "options": ["bv", "av"], "default": "bv"},
   "show_error": {"description": "提示自动解析失败", "type": "bool", "default": false},
-  "merge_forward": {"description": "在 OneBot 群聊中按模板分条合并转发", "type": "bool", "default": false},
+  "merge_forward": {
+    "description": "以合并转发格式发送",
+    "hint": "适用于 OneBot v11 群聊，单条预览也会包装成转发消息。其他场景或转发失败时发送普通消息。",
+    "type": "bool",
+    "default": false
+  },
   "link_template": {
-    "description": "普通链接与点播图文模板",
+    "description": "普通链接图文模板",
     "hint": "${封面} 会插入图片，${~~~} 可分条，${播放链接} 是 B 站网页播放器地址。",
     "type": "text",
-    "default": "${标题}\n${分P}\nUP 主：${UP主}\n播放 ${观看} · 点赞 ${点赞} · 弹幕 ${弹幕}\n投币 ${投币} · 收藏 ${收藏} · 转发 ${转发}\n${简介}\n${视频地址}\n${封面}"
+    "default": "${封面}\n🎬${标题}\n📝 ${简介}\n👤 UP 主：${UP主}\n▶️ 播放 ${观看} · 👍 点赞 ${点赞} · 💬 弹幕 ${弹幕}\n🪙 投币 ${投币} · ⭐ 收藏 ${收藏} · 🔄 转发 ${转发}\n🔗 ${视频地址}"
   },
   "card_template": {
     "description": "QQ 分享卡片图文模板",
