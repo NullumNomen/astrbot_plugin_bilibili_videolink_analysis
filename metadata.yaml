@@ -1,0 +1,5 @@
+name: astrbot_plugin_bilibili_videolink_analysis
+display_name: B 站视频链接解析
+desc: 解析 B 站视频链接、BV/AV 号和 QQ 分享卡片，返回图文预览并支持搜索点播。
+version: v0.1.0
+author: Bilibili Video Link Analysis contributors
